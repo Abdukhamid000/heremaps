@@ -531,6 +531,12 @@ async function drawRouteLine(routes: any[]) {
       }
     );
 
+    infoBubble.addEventListener("tap", () => {
+      console.log("Tapped on bubble");
+    });
+
+    console.log(infoBubble.getState(), "INFO BUBBLE");
+
     ui.addBubble(infoBubble);
 
     markers.push(
