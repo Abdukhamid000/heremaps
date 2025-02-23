@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // @ts-expect-error: TypeScript does not recognize this module
 import H from "@here/maps-api-for-javascript/bin/mapsjs.bundle.harp.js";
+
 import { onMounted, ref } from "vue";
 import * as turf from "@turf/turf";
 
@@ -435,6 +436,7 @@ let platform: null | H.service.Platform = null;
 const apiKey = "CcuUelWr_tQlaW2HBBPs3QCw5-fz80A9pr69v9O_P9E";
 const mapRef = ref();
 let map: null | H.Map = null;
+let ui: H.ui.UI = null;
 
 const origin = { lat: 56.97, lng: 24.09 };
 const destination = { lat: 54.7, lng: 25.24 };
@@ -460,6 +462,7 @@ function initMap() {
   });
 
   new H.mapevents.Behavior(new H.mapevents.MapEvents(newMap));
+  ui = H.ui.UI.createDefault(newMap, defaultLayers);
   map = newMap;
 }
 
@@ -503,12 +506,9 @@ async function drawRouteLine(routes: any[]) {
     lineStrings.push(H.geo.LineString.fromFlexiblePolyline(section.polyline));
   });
 
-  console.log(lineStrings[0], "LINE STRINGS");
   const routeCoordinates = lineStrings[0].toGeoJSON().coordinates;
-  console.log(routeCoordinates, "ROUTE CORD");
 
   const turfLineString = turf.lineString(routeCoordinates);
-  console.log(turfLineString, "TURF");
 
   const fuelStationsWithinRoute = fuelStations.filter((station) => {
     const stationPoint = turf.point([station.longitude, station.latitude]);
@@ -522,6 +522,17 @@ async function drawRouteLine(routes: any[]) {
 
   const markers = [];
   fuelStationsWithinRoute.forEach((station) => {
+    const content = `<div>${station.actual_price}</div>`;
+
+    const infoBubble = new H.ui.InfoBubble(
+      { lat: station.latitude, lng: station.longitude },
+      {
+        content,
+      }
+    );
+
+    ui.addBubble(infoBubble);
+
     markers.push(
       new H.map.Marker({
         lat: station.latitude,
@@ -590,7 +601,6 @@ onMounted(() => {
   }).then((routes) => {
     console.log(routes, "ROUTES");
     drawRouteLine(routes);
-    // discoverFuelStationsOnRoute(routes[0].sections[0].polyline);
   });
 });
 </script>
